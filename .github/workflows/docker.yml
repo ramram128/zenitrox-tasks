@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - "telegram-bridge/**"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:
