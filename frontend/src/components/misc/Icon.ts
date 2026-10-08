@@ -92,6 +92,9 @@ import {
 	faUmbrellaBeach,
 	faCalendarPlus,
 	faFlagCheckered,
+	faBroom,
+	faChartPie,
+	faTableCells,
 } from '@fortawesome/free-solid-svg-icons'
 import {
 	faBellSlash,
@@ -223,6 +226,9 @@ library.add(faCalendarCheck)
 library.add(faFaceLaugh)
 library.add(faExclamation)
 library.add(faArrowUpRightFromSquare)
+library.add(faBroom)
+library.add(faChartPie)
+library.add(faTableCells)
 
 // overwriting the wrong types
 export default FontAwesomeIcon as unknown as FontAwesomeIconFixedTypes

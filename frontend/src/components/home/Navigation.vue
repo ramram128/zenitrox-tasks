@@ -42,6 +42,22 @@
 					</RouterLink>
 				</li>
 				<li>
+					<RouterLink :to="{ name: 'dashboard'}">
+						<span class="menu-item-icon icon">
+							<Icon icon="chart-pie" />
+						</span>
+						{{ $t('navigation.dashboard') }}
+					</RouterLink>
+				</li>
+				<li>
+					<RouterLink :to="{ name: 'workload'}">
+						<span class="menu-item-icon icon">
+							<Icon icon="table-cells" />
+						</span>
+						{{ $t('navigation.workload') }}
+					</RouterLink>
+				</li>
+				<li>
 					<RouterLink
 						v-shortcut="SHORTCUTS.navigation.projects"
 						:to="{ name: 'projects.index'}"

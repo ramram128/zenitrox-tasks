@@ -401,6 +401,14 @@
     }
   },
   "project": {
+    "clearDone": {
+      "menu": "Clear completed tasks",
+      "title": "Clear completed tasks",
+      "text": "This will permanently delete {count} completed task(s) in \"{project}\".",
+      "irreversible": "This cannot be undone.",
+      "none": "There are no completed tasks in this project.",
+      "success": "Deleted {count} completed task(s)."
+    },
     "archivedMessage": "This project is archived. It is not possible to create new or edit tasks for it.",
     "archived": "Archived",
     "showArchived": "Show Archived",
@@ -863,7 +871,31 @@
     "home": "Zenitrox home",
     "toggleChildProjects": "Toggle sub-projects",
     "main": "Main navigation",
-    "savedFilters": "Saved filters"
+    "savedFilters": "Saved filters",
+    "dashboard": "Dashboard",
+    "workload": "Workload"
+  },
+  "dashboard": {
+    "title": "Team dashboard",
+    "open": "Open",
+    "overdue": "Overdue",
+    "dueThisWeek": "Due this week",
+    "doneThisWeek": "Done this week",
+    "dueToday": "Due today",
+    "completedPerDay": "Completed in the last 7 days",
+    "members": "Team members",
+    "member": "Member",
+    "progress": "Progress (7 days)",
+    "noOpenTasks": "No open tasks.",
+    "unassigned": "Unassigned",
+    "empty": "No team members or tasks yet."
+  },
+  "workload": {
+    "title": "Workload",
+    "description": "Open tasks due per person per day for the next two weeks. Click a number to see the tasks.",
+    "light": "1–2 tasks",
+    "busy": "3–4 tasks",
+    "overloaded": "5+ tasks"
   },
   "misc": {
     "loading": "Loading…",

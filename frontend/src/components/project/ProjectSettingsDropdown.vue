@@ -83,6 +83,12 @@
 				{{ $t('menu.duplicate') }}
 			</DropdownItem>
 			<DropdownItem
+				:to="{ name: 'project.settings.clearDone', params: { projectId: project.id } }"
+				icon="broom"
+			>
+				{{ $t('project.clearDone.menu') }}
+			</DropdownItem>
+			<DropdownItem
 				v-tooltip="isDefaultProject ? $t('menu.cantArchiveIsDefault') : ''"
 				:to="{ name: 'project.settings.archive', params: { projectId: project.id } }"
 				icon="archive"

@@ -317,6 +317,14 @@ const router = createRouter({
 			},
 		},
 		{
+			path: '/projects/:projectId(\\d+)/settings/clear-done',
+			name: 'project.settings.clearDone',
+			component: () => import('@/views/project/settings/ProjectSettingsClearDone.vue'),
+			meta: {
+				showAsModal: true,
+			},
+		},
+		{
 			path: '/projects/:projectId/settings/archive',
 			name: 'project.settings.archive',
 			component: () => import('@/views/project/settings/ProjectSettingsArchive.vue'),
@@ -388,6 +396,16 @@ const router = createRouter({
 				projectId: parseInt(route.params.projectId as string),
 				viewId: route.params.viewId ? parseInt(route.params.viewId as string): undefined,
 			}),
+		},
+		{
+			path: '/dashboard',
+			name: 'dashboard',
+			component: () => import('@/views/dashboard/TeamDashboard.vue'),
+		},
+		{
+			path: '/workload',
+			name: 'workload',
+			component: () => import('@/views/dashboard/TeamWorkload.vue'),
 		},
 		{
 			path: '/teams',
