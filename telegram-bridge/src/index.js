@@ -1,11 +1,13 @@
 // Zenitrox → Telegram bridge (Cloudflare Worker)
 //
 // POST /zenitrox   Zenitrox webhooks (project and user webhooks), signed with WEBHOOK_SECRET
-// POST /telegram   Telegram bot updates (/start, /link, /unlink, /chatid)
+// POST /telegram   Telegram bot updates (/start, /link, /unlink, /today, /chatid)
+// Cron             Morning digest: personal summaries and a team summary
 //
-// Secrets: TELEGRAM_BOT_TOKEN, WEBHOOK_SECRET, TELEGRAM_SECRET
+// Secrets: TELEGRAM_BOT_TOKEN, WEBHOOK_SECRET, TELEGRAM_SECRET,
+//          ZENITROX_API_TOKEN (optional, enables digests; needs "tasks: read all")
 // Vars:    ZENITROX_URL, TEAM_CHAT_ID (optional), TIMEZONE
-// KV:      LINKS  (username → Telegram chat id)
+// KV:      LINKS  (user:<username> → chat id, chat:<chat id> → username)
 
 export default {
 	async fetch(request, env) {
@@ -16,6 +18,10 @@ export default {
 		if (url.pathname === '/zenitrox') return handleZenitrox(request, env)
 		if (url.pathname === '/telegram') return handleTelegram(request, env)
 		return new Response('Not found', {status: 404})
+	},
+
+	async scheduled(_controller, env, ctx) {
+		ctx.waitUntil(sendDailyDigest(env))
 	},
 }
 
@@ -132,7 +138,7 @@ async function handleTelegram(request, env) {
 		await sendMessage(env, chatId,
 			'👋 Hi! I send Zenitrox task alerts.\n\n' +
 			'To get your personal alerts here, send:\n<code>/link your-zenitrox-username</code>\n\n' +
-			'/unlink stops personal alerts.\n/chatid shows this chat\'s id.')
+			'/today shows your tasks for today.\n/unlink stops personal alerts.\n/chatid shows this chat\'s id.')
 	} else if (cmd === '/link') {
 		if (msg.chat.type !== 'private') {
 			await sendMessage(env, chatId, 'Please send /link to me in a private chat.')
@@ -140,18 +146,147 @@ async function handleTelegram(request, env) {
 			await sendMessage(env, chatId, 'Usage: <code>/link your-zenitrox-username</code>')
 		} else {
 			await env.LINKS.put(`user:${arg.toLowerCase()}`, chatId)
+			await env.LINKS.put(`chat:${chatId}`, arg.toLowerCase())
 			await sendMessage(env, chatId, `✅ Linked to Zenitrox user <b>${esc(arg)}</b>. You'll get your task alerts here.`)
 		}
 	} else if (cmd === '/unlink') {
 		if (arg) {
 			const linked = await env.LINKS.get(`user:${arg.toLowerCase()}`)
-			if (linked === chatId) await env.LINKS.delete(`user:${arg.toLowerCase()}`)
+			if (linked === chatId) {
+				await env.LINKS.delete(`user:${arg.toLowerCase()}`)
+				await env.LINKS.delete(`chat:${chatId}`)
+			}
 		}
 		await sendMessage(env, chatId, arg ? 'Unlinked.' : 'Usage: <code>/unlink your-zenitrox-username</code>')
+	} else if (cmd === '/today') {
+		const username = await env.LINKS.get(`chat:${chatId}`)
+		if (!username) {
+			await sendMessage(env, chatId, 'Link your account first: <code>/link your-zenitrox-username</code>')
+		} else if (!env.ZENITROX_API_TOKEN) {
+			await sendMessage(env, chatId, 'Daily summaries are not set up yet.')
+		} else {
+			const digest = buildDigest(await fetchOpenTasks(env), env)
+			const mine = digest.byUser.get(username)
+			await sendMessage(env, chatId, mine ? personalDigest(mine, env) : '🎉 Nothing due today or overdue. Enjoy!')
+		}
 	} else if (cmd === '/chatid') {
 		await sendMessage(env, chatId, `This chat's id is <code>${chatId}</code>`)
 	}
 	return new Response('ok')
+}
+
+// ---------- Daily digest ----------
+
+const UPCOMING_DAYS = 3
+
+async function sendDailyDigest(env) {
+	if (!env.ZENITROX_API_TOKEN) return
+	const digest = buildDigest(await fetchOpenTasks(env), env)
+
+	for (const [username, entry] of digest.byUser) {
+		const chatId = await env.LINKS.get(`user:${username}`)
+		if (chatId) await sendMessage(env, chatId, personalDigest(entry, env))
+	}
+
+	if (env.TEAM_CHAT_ID) {
+		await sendMessage(env, env.TEAM_CHAT_ID, teamDigest(digest, env))
+	}
+}
+
+async function fetchOpenTasks(env) {
+	const base = env.ZENITROX_URL.replace(/\/$/, '')
+	const tasks = []
+	for (let page = 1; ; page++) {
+		const params = new URLSearchParams({
+			filter: 'done = false',
+			filter_timezone: env.TIMEZONE || 'Asia/Kolkata',
+			sort_by: 'due_date',
+			order_by: 'asc',
+			per_page: '250',
+			page: String(page),
+		})
+		const res = await fetch(`${base}/api/v1/tasks?${params}`, {
+			headers: {Authorization: `Bearer ${env.ZENITROX_API_TOKEN}`},
+		})
+		if (!res.ok) throw new Error(`Zenitrox API ${res.status}: ${await res.text()}`)
+		tasks.push(...(await res.json() ?? []))
+		const totalPages = Number(res.headers.get('x-pagination-total-pages') || 1)
+		if (page >= totalPages) return tasks
+	}
+}
+
+// Groups open tasks into overdue, due today and due soon, per assignee and for the team.
+function buildDigest(tasks, env) {
+	const now = new Date()
+	const today = localDay(now, env)
+	const soonEnd = localDay(new Date(now.getTime() + UPCOMING_DAYS * 86400000), env)
+	const byUser = new Map()
+	const team = {overdue: 0, today: 0, soon: 0}
+
+	for (const task of tasks) {
+		if (!task.due_date || task.due_date.startsWith('0001-')) continue
+		const due = new Date(task.due_date)
+		const day = localDay(due, env)
+		let bucket = null
+		if (due < now) bucket = 'overdue'
+		else if (day === today) bucket = 'today'
+		else if (day <= soonEnd) bucket = 'soon'
+		if (!bucket) continue
+
+		team[bucket]++
+		for (const a of task.assignees || []) {
+			const key = a.username.toLowerCase()
+			if (!byUser.has(key)) byUser.set(key, {user: a, overdue: [], today: [], soon: []})
+			byUser.get(key)[bucket].push(task)
+		}
+	}
+	return {byUser, team}
+}
+
+function personalDigest(entry, env) {
+	const name = esc(entry.user.name || entry.user.username)
+	const parts = [`☀️ Good morning, ${name}!`]
+	const section = (icon, label, list) => {
+		if (list.length === 0) return
+		// Telegram caps a message at 4096 characters.
+		const shown = list.slice(0, 15).map(t => `• ${taskLink(t, env)}${formatDue(t.due_date, env)}`)
+		if (list.length > shown.length) shown.push(`…and ${list.length - shown.length} more`)
+		parts.push(`\n${icon} <b>${label} (${list.length})</b>\n` + shown.join('\n'))
+	}
+	section('🔴', 'Overdue', entry.overdue)
+	section('📌', 'Due today', entry.today)
+	section('🗓', `Next ${UPCOMING_DAYS} days`, entry.soon)
+	if (parts.length === 1) parts.push('\n🎉 Nothing due today or overdue.')
+	return parts.join('\n')
+}
+
+function teamDigest(digest, env) {
+	const date = new Date().toLocaleDateString('en-IN', {timeZone: env.TIMEZONE || 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short'})
+	const lines = [`☀️ <b>Team summary — ${date}</b>`,
+		`🔴 Overdue: ${digest.team.overdue} · 📌 Due today: ${digest.team.today} · 🗓 Next ${UPCOMING_DAYS} days: ${digest.team.soon}`]
+	const people = [...digest.byUser.values()]
+		.filter(e => e.overdue.length || e.today.length)
+		.sort((a, b) => (b.overdue.length - a.overdue.length) || (b.today.length - a.today.length))
+	if (people.length) {
+		lines.push('')
+		for (const e of people) {
+			const bits = []
+			if (e.overdue.length) bits.push(`${e.overdue.length} overdue`)
+			if (e.today.length) bits.push(`${e.today.length} due today`)
+			lines.push(`• ${esc(e.user.name || e.user.username)}: ${bits.join(', ')}`)
+		}
+	}
+	lines.push(`\n<a href="${env.ZENITROX_URL.replace(/\/$/, '')}/dashboard">Open team dashboard</a>`)
+	return lines.join('\n')
+}
+
+function localDay(date, env) {
+	// en-CA formats as YYYY-MM-DD, which sorts and compares as a string.
+	return date.toLocaleDateString('en-CA', {timeZone: env.TIMEZONE || 'Asia/Kolkata'})
+}
+
+function taskLink(task, env) {
+	return `<a href="${env.ZENITROX_URL.replace(/\/$/, '')}/tasks/${task.id}">${esc(task.title)}</a>`
 }
 
 // ---------- Helpers ----------

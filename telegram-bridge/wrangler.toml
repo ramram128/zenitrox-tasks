@@ -11,3 +11,7 @@ TEAM_CHAT_ID = "-5418417734"
 [[kv_namespaces]]
 binding = "LINKS"
 id = "cb7de4ec7be54afaa0768f90378048fb"
+
+# Morning digest at 08:00 IST (02:30 UTC), Monday to Saturday
+[triggers]
+crons = ["30 2 * * 1-6"]
