@@ -401,6 +401,17 @@
     }
   },
   "project": {
+    "template": {
+      "button": "New from template",
+      "title": "New project from template",
+      "template": "Template",
+      "create": "Create project",
+      "startDate": "Start date",
+      "startDateHelp": "Due dates move so the first task is due on this day, keeping the same gaps between tasks.",
+      "noTemplates": "You don't have any templates yet.",
+      "howTo": "Create a project named \"{folder}\" and add projects inside it with the tasks you reuse. Each one shows up here as a template.",
+      "success": "The project was created from the template."
+    },
     "clearDone": {
       "menu": "Clear completed tasks",
       "title": "Clear completed tasks",

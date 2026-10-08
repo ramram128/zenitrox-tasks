@@ -251,6 +251,14 @@ const router = createRouter({
 			component: () => import('@/views/project/ListProjects.vue'),
 		},
 		{
+			path: '/projects/from-template',
+			name: 'project.createFromTemplate',
+			component: () => import('@/views/project/NewProjectFromTemplate.vue'),
+			meta: {
+				showAsModal: true,
+			},
+		},
+		{
 			path: '/projects/new',
 			name: 'project.create',
 			component: () => import('@/views/project/NewProject.vue'),

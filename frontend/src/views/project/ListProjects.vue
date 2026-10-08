@@ -20,6 +20,12 @@
 					{{ $t('filters.create.title') }}
 				</XButton>
 				<XButton
+					:to="{name: 'project.createFromTemplate'}"
+					icon="paste"
+				>
+					{{ $t('project.template.button') }}
+				</XButton>
+				<XButton
 					v-cy="'new-project'"
 					:to="{name: 'project.create'}"
 					icon="plus"
