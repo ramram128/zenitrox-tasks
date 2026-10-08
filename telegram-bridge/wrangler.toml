@@ -1,0 +1,13 @@
+name = "zenitrox-telegram"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+ZENITROX_URL = "https://zenitroxteam.onrender.com"
+TIMEZONE = "Asia/Kolkata"
+# Set after you add the bot to your team group and run /chatid there:
+TEAM_CHAT_ID = ""
+
+[[kv_namespaces]]
+binding = "LINKS"
+id = "PASTE_KV_NAMESPACE_ID"

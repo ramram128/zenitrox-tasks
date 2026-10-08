@@ -3,6 +3,8 @@ name: Build Zenitrox image
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "telegram-bridge/**"
   workflow_dispatch:
 
 permissions:
