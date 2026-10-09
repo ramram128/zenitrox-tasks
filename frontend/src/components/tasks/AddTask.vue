@@ -23,9 +23,25 @@
 					:class="{'textarea-empty': newTaskTitle === ''}"
 					:placeholder="$t('project.list.addPlaceholder')"
 					rows="1"
-					@keydown="resetEmptyTitleError"
-					@keydown.enter="handleEnter"
-					@keydown.esc="blurTaskInput"
+					aria-autocomplete="list"
+					:aria-expanded="assigneeSuggestions.isOpen.value"
+					:aria-controls="assigneeSuggestions.isOpen.value ? suggestionsId : undefined"
+					:aria-activedescendant="assigneeSuggestions.isOpen.value && assigneeSuggestions.users.value.length
+						? `${suggestionsId}-${assigneeSuggestions.selectedIndex.value}`
+						: undefined"
+					@keydown="handleKeydown"
+					@input="assigneeSuggestions.update"
+					@click="assigneeSuggestions.update"
+					@keyup.left="assigneeSuggestions.update"
+					@keyup.right="assigneeSuggestions.update"
+					@blur="assigneeSuggestions.close"
+				/>
+				<AssigneeSuggestions
+					v-if="assigneeSuggestions.isOpen.value"
+					:id="suggestionsId"
+					:users="assigneeSuggestions.users.value"
+					:selected-index="assigneeSuggestions.selectedIndex.value"
+					@select="assigneeSuggestions.select"
 				/>
 				<QuickAddMagic
 					:highlight-hint-icon="taskAddHovered"
@@ -70,8 +86,10 @@ import type {Task as ITask} from '@/client/generated'
 
 import Expandable from '@/components/base/Expandable.vue'
 import QuickAddMagic from '@/components/tasks/partials/QuickAddMagic.vue'
+import AssigneeSuggestions from '@/components/tasks/partials/AssigneeSuggestions.vue'
 import {parseSubtasksViaIndention, type TaskWithParent} from '@/helpers/parseSubtasksViaIndention'
 import {getLabelsFromPrefix} from '@/modules/quickAddMagic'
+import {PREFIXES} from '@/modules/quickAddMagic/prefixes'
 import {runWrites} from '@/helpers/runWrites'
 import {error} from '@/message'
 
@@ -80,6 +98,7 @@ import {useConfigStore} from '@/stores/config'
 import {reportSkippedLabels, useQuickAddTask} from '@/composables/useQuickAddTask'
 
 import {useAutoHeightTextarea} from '@/composables/useAutoHeightTextarea'
+import {useAssigneeSuggestions} from '@/composables/useAssigneeSuggestions'
 import {useDelayedLoading} from '@/composables/useDelayedLoading'
 
 const emit = defineEmits<{
@@ -98,6 +117,21 @@ const {createNewTasksBulk, findProjectId, ensureLabelsExist, isLoading: loading}
 const showLoading = useDelayedLoading(loading)
 const createRelationMutation = useCreateTaskRelationMutation()
 const router = useRouter()
+
+function getCurrentProjectId(): number {
+	const projectId = router.currentRoute.value.params.projectId
+	return typeof projectId !== 'undefined'
+		? Number(projectId)
+		: authStore.settings.default_project_id ?? 0
+}
+
+const suggestionsId = computed(() => `${textareaId.value}-assignees`)
+const assigneeSuggestions = useAssigneeSuggestions(
+	newTaskInput,
+	newTaskTitle,
+	getCurrentProjectId,
+	() => PREFIXES[authStore.settings.frontend_settings.quick_add_magic_mode]?.assignee,
+)
 
 // enable only if we don't have a modal
 // onStartTyping(() => {
@@ -147,10 +181,7 @@ async function addTask() {
 	// Skipped labels (e.g. link shares may not create them) don't block task creation; just tell the user.
 	reportSkippedLabels(skipped)
 
-	let currentProjectId = authStore.settings.default_project_id
-	if (typeof router.currentRoute.value.params.projectId !== 'undefined') {
-		currentProjectId = Number(router.currentRoute.value.params.projectId)
-	}
+	const currentProjectId = getCurrentProjectId()
 
 	try {
 		newTaskTitle.value = ''
@@ -237,6 +268,18 @@ async function addTask() {
 			return
 		}
 		throw e
+	}
+}
+
+function handleKeydown(e: KeyboardEvent) {
+	resetEmptyTitleError()
+	if (assigneeSuggestions.handleKeydown(e)) {
+		return
+	}
+	if (e.key === 'Enter') {
+		handleEnter(e)
+	} else if (e.key === 'Escape') {
+		blurTaskInput()
 	}
 }
 
