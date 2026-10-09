@@ -912,8 +912,14 @@
     "main": "Main navigation",
     "savedFilters": "Saved filters",
     "dashboard": "Dashboard",
-    "workload": "Workload"
+    "workload": "Workload",
+    "tools": "Tools"
   },
+  "tools": {
+    "title": "Tools",
+    "intro": "Apps and add-ons that work with Zenitrox, and how to set them up."
+  },
+
   "dashboard": {
     "title": "Team dashboard",
     "open": "Open",
