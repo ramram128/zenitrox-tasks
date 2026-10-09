@@ -111,6 +111,12 @@
 				class="menu"
 				:aria-label="$t('project.pseudo.favorites.title')"
 			>
+				<p
+					class="menu-label"
+					aria-hidden="true"
+				>
+					{{ $t('project.pseudo.favorites.title') }}
+				</p>
 				<ProjectsNavigation
 					:model-value="favoriteProjects"
 					:can-edit-order="false"
@@ -123,6 +129,12 @@
 				class="menu"
 				:aria-label="$t('navigation.savedFilters')"
 			>
+				<p
+					class="menu-label"
+					aria-hidden="true"
+				>
+					{{ $t('navigation.savedFilters') }}
+				</p>
 				<ProjectsNavigation
 					:model-value="savedFilterProjects"
 					:can-edit-order="false"
@@ -134,6 +146,12 @@
 				class="menu"
 				:aria-label="$t('project.projects')"
 			>
+				<p
+					class="menu-label"
+					aria-hidden="true"
+				>
+					{{ $t('project.projects') }}
+				</p>
 				<ProjectsNavigation
 					:model-value="projects"
 					:can-edit-order="true"
@@ -180,15 +198,11 @@ const savedFilterProjects = computed(() => projectList.savedFilterProjects)
 
 <style lang="scss" scoped>
 .logo {
-	display: block;
-
-	padding-inline-start: 1rem;
-	margin-inline-end: 1rem;
-	margin-block-end: 1rem;
-
-	@media screen and (min-width: $tablet) {
-		display: none;
-	}
+	display: flex;
+	align-items: center;
+	min-block-size: $navbar-height;
+	padding-inline: 1.25rem;
+	margin-block: -1rem .5rem;
 }
 
 .menu-container {
@@ -196,14 +210,16 @@ const savedFilterProjects = computed(() => projectList.savedFilterProjects)
 
 	display: flex;
 	flex-direction: column;
-	background: var(--site-background);
+	background: var(--sidebar-background);
+	border-inline-end: 1px solid var(--grey-200);
 	color: $vikunja-nav-color;
 	padding: 1rem 0;
 	transition: transform $transition-duration ease-in;
 	position: fixed;
-	inset-block-start: $navbar-height;
+	inset-block-start: 0;
 	inset-block-end: 0;
 	inset-inline-start: 0;
+	z-index: 31;
 	transform: translateX(-100%);
 	inline-size: var(--sidebar-width);
 	overflow-y: auto;
@@ -213,7 +229,6 @@ const savedFilterProjects = computed(() => projectList.savedFilterProjects)
 	}
 
 	@media screen and (max-width: $tablet) {
-		inset-block-start: 0;
 		inline-size: 70vw;
 		z-index: 20;
 	}
@@ -245,24 +260,63 @@ const savedFilterProjects = computed(() => projectList.savedFilterProjects)
 	}
 }
 
-.top-menu .menu-list {
+.menu-container .top-menu .menu-list {
+	padding-inline: .75rem;
+
 	li {
-		font-weight: 600;
-		font-family: $vikunja-font;
+		font-weight: 500;
+		font-size: .9375rem;
+		block-size: auto;
+		margin-block-end: 2px;
+
+		&:hover {
+			background: transparent;
+		}
 	}
 
-	.list-menu-link,
 	li > a {
-		padding-inline-start: 2rem;
-		display: inline-block;
+		inline-size: 100%;
+		padding: .5rem .75rem;
+		border-radius: $radius;
+		display: flex;
+		gap: .25rem;
+		color: var(--grey-600);
+		transition: background-color $transition, color $transition;
 
 		.icon {
-			padding-block-end: .25rem;
+			color: var(--grey-400);
+			padding-block-end: 0;
+		}
+
+		&:hover {
+			background: hsla(var(--primary-hsl), .06);
+			color: var(--text-strong);
+		}
+
+		&.router-link-exact-active {
+			background: var(--primary);
+			color: #ffffff;
+			font-weight: 600;
+			box-shadow: 0 4px 12px hsla(var(--primary-hsl), .25);
+
+			.icon {
+				color: #ffffff;
+			}
 		}
 	}
 }
 
+.menu-label {
+	padding-inline: 1.5rem;
+	margin-block: 0 .375rem;
+	font-size: .6875rem;
+	font-weight: 700;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
 .menu + .menu {
-	padding-block-start: math.div($navbar-padding, 2);
+	padding-block-start: 1.25rem;
 }
 </style>

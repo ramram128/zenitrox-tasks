@@ -89,15 +89,14 @@ const showLoading = useDelayedLoading(() => props.loading)
 	// Custom styles
 	transition: all $transition;
 	border: 0;
-	text-transform: uppercase;
-	font-size: 0.85rem;
-	font-weight: bold;
+	font-size: 0.875rem;
+	font-weight: 600;
 	block-size: auto;
 	min-block-size: $button-height;
-	box-shadow: var(--shadow-sm);
+	box-shadow: var(--shadow-xs);
 	line-height: 1;
-	padding-inline: .5rem;
-	gap: .25rem;
+	padding-inline: .875rem;
+	gap: .375rem;
 
 	// Default/Primary variant colors
 	background-color: var(--primary);
@@ -144,23 +143,25 @@ const showLoading = useDelayedLoading(() => props.loading)
 		color: var(--button-text-color);
 
 		&:hover {
-			background-color: var(--primary-dark, color-mix(in srgb, var(--primary) 85%, black));
+			background: var(--brand-gradient);
 		}
 	}
 
 	// Secondary/Outlined variant
 	&.is-outlined {
-		background-color: var(--scheme-main);
+		background: var(--scheme-main);
 		color: var(--grey-900);
+		border: 1px solid var(--grey-200);
 
 		&:hover {
-			color: var(--grey-600);
+			background: var(--grey-50);
+			border-color: var(--grey-300);
 		}
 	}
 
 	// Tertiary/Text variant
 	&.is-text {
-		background-color: transparent;
+		background: transparent;
 		color: var(--text);
 		box-shadow: none;
 
@@ -182,7 +183,7 @@ const showLoading = useDelayedLoading(() => props.loading)
 		color: var(--button-text-color);
 
 		&:hover {
-			background-color: var(--danger-dark);
+			background: var(--danger-dark);
 			border-color: transparent;
 		}
 
@@ -195,7 +196,7 @@ const showLoading = useDelayedLoading(() => props.loading)
 		}
 
 		&:active {
-			background-color: var(--danger-dark);
+			background: var(--danger-dark);
 			border-color: transparent;
 		}
 	}
@@ -208,7 +209,7 @@ const showLoading = useDelayedLoading(() => props.loading)
 
 		&:hover,
 		&:focus {
-			background-color: var(--danger);
+			background: var(--danger);
 			border-color: var(--danger);
 			color: var(--button-text-color);
 		}
@@ -220,7 +221,7 @@ const showLoading = useDelayedLoading(() => props.loading)
 		color: var(--danger);
 
 		&:hover {
-			background-color: hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.1);
+			background: hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.1);
 		}
 	}
 

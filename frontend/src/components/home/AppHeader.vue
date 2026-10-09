@@ -3,8 +3,11 @@
 		:class="{ 'has-background': background, 'menu-active': menuActive }"
 		aria-label="main navigation"
 		class="navbar d-print-none"
+		:style="{'--sidebar-width': sidebarWidthStyle}"
 	>
+		<!-- v-if, not CSS: two mounted logos share SVG gradient ids and a hidden first copy blanks the sidebar one -->
 		<RouterLink
+			v-if="!menuActive"
 			:to="{ name: 'home' }"
 			class="logo-link"
 			:aria-label="$t('navigation.home')"
@@ -153,6 +156,7 @@ import { useBaseStore } from '@/stores/base'
 import { useConfigStore } from '@/stores/config'
 import { useAuthStore } from '@/stores/auth'
 import {useCurrentProject} from '@/composables/useCurrentProject'
+import {useSidebarResize} from '@/composables/useSidebarResize'
 
 const baseStore = useBaseStore()
 const {currentProject} = useCurrentProject()
@@ -163,6 +167,7 @@ const canWriteCurrentProject = computed(() =>
 	currentProject.value.max_permission > Permissions.READ,
 )
 const menuActive = computed(() => baseStore.menuActive)
+const {sidebarWidthStyle} = useSidebarResize()
 
 // Standalone pages (no project) surface their route's title in the header.
 const route = useRoute()
@@ -199,16 +204,24 @@ $user-dropdown-width-mobile: 5rem;
 	gap: var(--navbar-gap-width);
 	min-block-size: $navbar-height;
 
-	background: var(--site-background);
+	background: hsla(var(--grey-50-hsl), .85);
+	backdrop-filter: blur(12px);
+	border-block-end: 1px solid var(--grey-200);
+	transition: inset-inline-start $transition-duration;
 
 	@media screen and (min-width: $tablet) {
-		padding-inline-start: 2rem;
+		padding-inline: 1.5rem;
 		align-items: stretch;
 	}
 
 	&.menu-active {
 		@media screen and (max-width: $tablet) {
 			z-index: 0;
+		}
+
+		// The sidebar carries the logo and runs full height, so the header starts next to it
+		@media screen and (min-width: $tablet) {
+			inset-inline-start: var(--sidebar-width);
 		}
 	}
 
@@ -257,6 +270,9 @@ $user-dropdown-width-mobile: 5rem;
 }
 
 .project-title {
+	font-family: $vikunja-font;
+	font-weight: 600;
+	color: var(--text-strong);
 	font-size: 1rem;
 	// We need the following for overflowing ellipsis to work
 	text-overflow: ellipsis;
@@ -264,7 +280,7 @@ $user-dropdown-width-mobile: 5rem;
 	white-space: nowrap;
 
 	@media screen and (min-width: $tablet) {
-		font-size: 1.75rem;
+		font-size: 1.375rem;
 	}
 }
 
@@ -290,6 +306,7 @@ $user-dropdown-width-mobile: 5rem;
 	flex: 0 0 auto;
 	display: flex;
 	align-items: stretch;
+	gap: .25rem;
 
 	>* {
 		min-inline-size: var(--navbar-button-min-width);

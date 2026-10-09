@@ -177,22 +177,34 @@
 
 
   // Vikunja specific variables
-  --grey-50: hsl(210, 20%, 98%);
-  --grey-100-hsl: 220, 14.3%, 95.9%;
+  // Zenitrox: slate ramp (#f8fafc … #0f172a)
+  --grey-50-hsl: 210, 40%, 98%;
+  --grey-50: hsl(var(--grey-50-hsl));
+  --grey-100-hsl: 210, 40%, 96.1%;
   --grey-100: hsl(var(--grey-100-hsl));
-  --grey-200: hsl(220, 13%, 91%);
-  --grey-300: hsl(216, 12.2%, 83.9%);
-  --grey-400: hsl(217.9, 10.6%, 64.9%);
-  --grey-500-hsl: 220, 8.9%, 46.1%;
+  --grey-200: hsl(214.3, 31.8%, 91.4%);
+  --grey-300: hsl(212.7, 26.8%, 83.9%);
+  --grey-400: hsl(215, 20.2%, 65.1%);
+  --grey-500-hsl: 215.4, 16.3%, 46.9%;
   --grey-500: hsl(var(--grey-500-hsl));
-  --grey-600: hsl(215, 13.8%, 34.1%);
-  --grey-700: hsl(216.9, 19.1%, 26.7%);
-  --grey-800: hsl(215, 27.9%, 16.9%);
-  --grey-900: hsl(220.9, 39.3%, 11%);
-  --site-background: var(--grey-100);
+  --grey-600: hsl(215.3, 19.3%, 34.5%);
+  --grey-700: hsl(215.3, 25%, 26.7%);
+  --grey-800: hsl(217.2, 32.6%, 17.5%);
+  --grey-900-hsl: 222.2, 47.4%, 11.2%;
+  --grey-900: hsl(var(--grey-900-hsl));
+  --site-background: var(--grey-50);
 
   // Muted body text (metadata, counts) darkened from --grey-500 to clear 4.5:1 on both white and --grey-100
-  --text-muted: hsl(220, 8.9%, 42%);
+  --text-muted: hsl(215.4, 16.3%, 41%);
+
+  // Zenitrox brand
+  --secondary-h: 249deg;
+  --secondary-s: 90%;
+  --secondary-l: 60%;
+  --secondary-hsl: var(--secondary-h), var(--secondary-s), var(--secondary-l);
+  --secondary: hsl(var(--secondary-hsl));
+  --brand-gradient: linear-gradient(135deg, #196aff 0%, #5b3df5 100%);
+  --sidebar-background: hsl(220, 100%, 97.5%);
 
   // Overrides of Bulma defaults
   --scheme-main: var(--white);
@@ -217,29 +229,29 @@
   --black-a: 1;
   --black: hsla(var(--black-h), var(--black-s), var(--black-l), var(--black-a));
 
-  // $warning / $orange: #ff851b
-  --warning-h: 27.9deg;
-  --warning-s: 100%;
-  --warning-l: 55.3%;
+  // Zenitrox amber #f59e0b
+  --warning-h: 37.7deg;
+  --warning-s: 92.1%;
+  --warning-l: 50.2%;
   --warning-a: 1;
   --warning: hsla(var(--warning-h), var(--warning-s), var(--warning-l), var(--warning-a));
 
-  // $success / $green is #00db60
-  --success-h: 146.3deg;
-  --success-s: 100%;
-  --success-l: 42.9%;
+  // Zenitrox emerald #10b981
+  --success-h: 160.1deg;
+  --success-s: 84.1%;
+  --success-l: 39.4%;
   --success-a: 1;
   --success: hsla(var(--success-h), var(--success-s), var(--success-l), var(--success-a));
 
-  // $danger / $red is #ff4136
-  --danger-h: 3.3deg;
-  --danger-s: 100%;
-  --danger-l: 60.6%;
+  // Zenitrox red #ef4444
+  --danger-h: 0deg;
+  --danger-s: 84.2%;
+  --danger-l: 60.2%;
   --danger-a: 1;
   --danger: hsla(var(--danger-h), var(--danger-s), var(--danger-l), var(--danger-a));
 
   // Darker than --danger: --danger as text fails WCAG contrast (3.46:1 on white)
-  --danger-text-l: 40%;
+  --danger-text-l: 44%;
   --danger-text: hsla(var(--danger-h), var(--danger-s), var(--danger-text-l), var(--danger-a));
 
   // var(--primary) / $blue is #1973ff
@@ -277,23 +289,25 @@
   &.dark {
     @media screen {
       // Light mode colours reversed for dark mode
-      --grey-900-hsl: 210, 20%, 98%;
+      --grey-900-hsl: 210, 40%, 98%;
       --grey-900: hsl(var(--grey-900-hsl));
-      --grey-800: hsl(220, 14.3%, 95.9%);
-      --grey-700: hsl(220, 13%, 91%);
-      --grey-600: hsl(216, 12.2%, 83.9%);
-      --grey-500-hsl: 217.9, 10.6%, 64.9%;
+      --grey-800: hsl(210, 40%, 96.1%);
+      --grey-700: hsl(214.3, 31.8%, 91.4%);
+      --grey-600: hsl(212.7, 26.8%, 83.9%);
+      --grey-500-hsl: 215, 20.2%, 65.1%;
       --grey-500: hsl(var(--grey-500-hsl));
-      --grey-400: hsl(220, 8.9%, 46.1%);
-      --grey-300: hsl(215, 13.8%, 34.1%);
-      --grey-200: hsl(216.9, 19.1%, 26.7%);
-      --grey-100-hsl: 215, 27.9%, 16.9%;
+      --grey-400: hsl(215.4, 16.3%, 46.9%);
+      --grey-300: hsl(215.3, 19.3%, 34.5%);
+      --grey-200: hsl(215.3, 25%, 26.7%);
+      --grey-100-hsl: 217.2, 32.6%, 17.5%;
       --grey-100: hsl(var(--grey-100-hsl));
-      --grey-50-hsl: 220.9, 39.3%, 11%;
+      // Zenitrox canvas #0b0f17
+      --grey-50-hsl: 220, 35.3%, 6.7%;
       --grey-50: hsl(var(--grey-50-hsl));
 
-      // Dark grey looks better than black
-      --white: var(--grey-50);
+      // Cards and surfaces sit one step above the canvas (#131b2e)
+      --white: hsl(222, 41.7%, 12.7%);
+      --sidebar-background: var(--white);
       --black-l: 100%;
 
       // Text renders better in grey than black
@@ -318,7 +332,7 @@
       --button-focus-color: var(--grey-600);
 
       // Custom color variables we need to override
-      --card-border-color: hsla(var(--grey-100-hsl), 0.3);
+      --card-border-color: var(--grey-100);
       --logo-text-color: var(--grey-700);
 
       // Slightly different primary color to make sure it has a sufficient contrast ratio

@@ -72,7 +72,7 @@ const showLoading = useDelayedLoading(() => props.loading)
 <style lang="scss" scoped>
 .card {
 	background-color: var(--white);
-	border-radius: $radius;
+	border-radius: $radius-large;
 	margin-block-end: 1rem;
 	border: 1px solid var(--card-border-color);
 	box-shadow: var(--shadow-sm);
@@ -92,7 +92,7 @@ const showLoading = useDelayedLoading(() => props.loading)
 	display: flex;
 	box-shadow: none;
 	border-inline-end: 1px solid var(--card-border-color);
-	border-radius: $radius $radius 0 0;
+	border-radius: $radius-large $radius-large 0 0;
 }
 
 .card-header-title {
@@ -121,13 +121,13 @@ const showLoading = useDelayedLoading(() => props.loading)
 	padding: 1.5rem;
 
 	&:first-child {
-		border-start-start-radius: $radius;
-		border-start-end-radius: $radius;
+		border-start-start-radius: $radius-large;
+		border-start-end-radius: $radius-large;
 	}
 
 	&:last-child {
-		border-end-start-radius: $radius;
-		border-end-end-radius: $radius;
+		border-end-start-radius: $radius-large;
+		border-end-end-radius: $radius-large;
 	}
 
 	// Utility classes like .p-0 are defined globally with lower specificity
