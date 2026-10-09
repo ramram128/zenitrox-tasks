@@ -53,6 +53,11 @@
 									>
 										<Icon icon="check-double" />
 									</span>
+									<span
+										v-else
+										class="bucket-dot"
+										aria-hidden="true"
+									/>
 									<h2
 										class="title input"
 										:contenteditable="(bucketTitleEditable && canWrite && !collapsedBuckets[bucket.id]) ? true : undefined"
@@ -918,7 +923,7 @@ $filter-container-height: '1rem - #{$switch-view-height}';
 	}
 
 	.bucket {
-		border-radius: $radius;
+		border-radius: $radius-large;
 		position: relative;
 
 		margin: 0 $bucket-right-margin 0 0;
@@ -1006,26 +1011,43 @@ $filter-container-height: '1rem - #{$switch-view-height}';
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: .5rem;
+		gap: .25rem;
+		padding: .5rem .5rem .5rem .75rem;
 		block-size: $bucket-header-height;
 
 		.icon.has-text-success {
 			cursor: pointer;
 		}
 
+		.bucket-dot {
+			flex-shrink: 0;
+			inline-size: .6rem;
+			block-size: .6rem;
+			border-radius: 50%;
+			background: var(--primary);
+		}
+
 		.limit {
-			padding: 0 .5rem;
-			font-weight: bold;
+			flex-shrink: 0;
+			padding: .1rem .55rem;
+			border-radius: 999px;
+			background: var(--white);
+			color: var(--grey-600);
+			font-size: .75rem;
+			font-weight: 600;
 
 			&.is-max {
 				color: var(--danger-text);
+				background: hsla(var(--danger-h), var(--danger-s), var(--danger-l), .12);
 			}
 		}
 
 		.title.input {
 			block-size: auto;
-			padding: .4rem .5rem;
+			padding: .4rem .25rem;
 			display: inline-block;
+			flex: 1;
+			min-inline-size: 0;
 			cursor: pointer;
 		}
 	}

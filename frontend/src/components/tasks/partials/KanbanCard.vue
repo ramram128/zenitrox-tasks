@@ -11,6 +11,8 @@
 		:data-task-id="task.id"
 		:data-project-id="task.project_id"
 		:data-is-overdue="isOverdue || undefined"
+		:data-is-due-today="isDueToday || undefined"
+		:data-priority="priorityAccent"
 		@click.exact="openTaskDetail()"
 		@click.ctrl="() => toggleTaskDone(task)"
 		@click.meta="() => toggleTaskDone(task)"
@@ -149,6 +151,7 @@ import {isEditorContentEmpty} from '@/helpers/editorContentEmpty'
 import {useProjects} from '@/composables/useProjects'
 import {useDelayedLoading} from '@/composables/useDelayedLoading'
 import {TASK_REPEAT_MODES} from '@/types/IRepeatMode'
+import {isTaskDueToday, taskPriorityAccent} from '@/helpers/taskUrgency'
 
 const props = defineProps<{
 	task: TaskResponse,
@@ -187,6 +190,9 @@ const isOverdue = computed(() => (
 	new Date(props.task.due_date ?? 0).getTime() > 0 &&
 	new Date(props.task.due_date ?? 0).getTime() <= now.value.getTime()
 ))
+
+const isDueToday = computed(() => isTaskDueToday(props.task, now.value))
+const priorityAccent = computed(() => taskPriorityAccent(props.task))
 
 async function toggleTaskDone(task: TaskResponse) {
 	const isRecurringTask = task.repeat_after > 0 || task.repeat_mode === TASK_REPEAT_MODES.REPEAT_MODE_MONTH
@@ -261,9 +267,24 @@ $task-background: var(--white);
 	display: block;
 
 	font-size: .9rem;
-	border-radius: $radius;
+	border: 1px solid var(--grey-200);
+	border-radius: $radius-large;
 	background: $task-background;
 	overflow: hidden;
+	transition: box-shadow $transition, border-color $transition;
+
+	&:hover {
+		border-color: var(--grey-300);
+		box-shadow: var(--shadow-sm);
+	}
+
+	&[data-priority='high'] {
+		border-inline-start: 3px solid var(--warning);
+	}
+
+	&[data-priority='urgent'] {
+		border-inline-start: 3px solid var(--danger);
+	}
 
 	&.loader-container.is-loading::after {
 		inline-size: 1.5rem;
@@ -275,7 +296,10 @@ $task-background: var(--white);
 
 	h3 {
 		font-family: $family-sans-serif;
-		font-size: .85rem;
+		font-size: .9rem;
+		font-weight: 600;
+		line-height: 1.35;
+		margin: .35rem 0 .15rem;
 		word-break: break-word;
 	}
 
@@ -297,8 +321,14 @@ $task-background: var(--white);
 
 	}
 
+	&[data-is-due-today] .due-date {
+		color: var(--warning-text);
+		background: hsla(var(--warning-h), var(--warning-s), var(--warning-l), .15);
+	}
+
 	&[data-is-overdue] .due-date {
 		color: var(--danger-text);
+		background: hsla(var(--danger-h), var(--danger-s), var(--danger-l), .12);
 	}
 
 	.label-wrapper .tag {
@@ -347,8 +377,10 @@ $task-background: var(--white);
 	.due-date,
 	.priority-label {
 		background: var(--grey-100);
-		border-radius: $radius;
-		padding: 0 .5rem;
+		border-radius: 999px;
+		padding: .05rem .5rem;
+		font-size: .75rem;
+		font-weight: 500;
 	}
 
 	.task-id, .project-title {

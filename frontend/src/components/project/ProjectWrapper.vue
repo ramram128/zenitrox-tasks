@@ -63,6 +63,10 @@
 					:to="getViewRoute(view)"
 					:tabindex="isOverflowing ? -1 : undefined"
 				>
+					<Icon
+						:icon="getViewIcon(view)"
+						class="switch-view-icon"
+					/>
 					{{ getViewTitle(view) }}
 				</BaseButton>
 			</div>
@@ -167,6 +171,18 @@ function getViewTitle(view: ProjectView) {
 	return view.title ?? ''
 }
 
+function getViewIcon(view: ProjectView) {
+	switch (view.view_kind) {
+		case 'gantt':
+			return 'align-left'
+		case 'table':
+			return 'table'
+		case 'kanban':
+			return 'th'
+	}
+	return 'list'
+}
+
 function getViewRoute(view: ProjectView) {
 	const viewId = view.id ?? 0
 	const storedQuery = viewFiltersStore.getViewQuery(viewId)
@@ -183,12 +199,17 @@ function getViewRoute(view: ProjectView) {
 	position: relative;
 	min-block-size: $switch-view-height;
 	margin-block-end: 1rem;
-	
+	padding: .5rem;
+	background: var(--white);
+	border: 1px solid var(--grey-200);
+	border-radius: $radius-large;
+	box-shadow: var(--shadow-xs);
+
 	display: flex;
 	justify-content: space-between;
-	align-items: center;	
+	align-items: center;
 	gap: 1rem;
-	
+
 	@media screen and (max-width: $tablet) {
 		justify-content: center;
 		flex-direction: column;
@@ -196,12 +217,12 @@ function getViewRoute(view: ProjectView) {
 }
 
 .switch-view {
-	background: var(--white);
 	display: inline-flex;
+	gap: .25rem;
+	padding: .25rem;
+	background: var(--grey-100);
 	border-radius: $radius;
-	font-size: .75rem;
-	box-shadow: var(--shadow-sm);
-	padding: .5rem;
+	font-size: .875rem;
 }
 
 .switch-view--hidden {
@@ -229,27 +250,31 @@ function getViewRoute(view: ProjectView) {
 }
 
 .switch-view-button {
-	padding: .25rem .5rem;
-	display: block;
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	padding: .4rem .85rem;
 	white-space: nowrap;
-	border-radius: $radius;
+	border-radius: $radius-small;
+	color: var(--grey-600);
+	font-weight: 500;
 	transition: all 100ms;
 
-	&:not(:last-child) {
-		margin-inline-end: .5rem;
-	}
-
 	&:hover {
-		color: var(--switch-view-color);
-		background: var(--switch-view-active-background);
+		color: var(--grey-900);
+		background: var(--grey-200);
 	}
 
 	&.is-active {
-		color: var(--switch-view-color);
-		background: var(--switch-view-active-background);
-		font-weight: bold;
+		color: var(--primary);
+		background: var(--white);
+		font-weight: 600;
 		box-shadow: var(--shadow-xs);
 	}
+}
+
+.switch-view-icon {
+	font-size: .8rem;
 }
 
 // FIXME: this should be in notification and set via a prop

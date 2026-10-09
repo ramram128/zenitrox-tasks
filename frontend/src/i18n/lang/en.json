@@ -32,6 +32,34 @@
     "welcomeEveningOneMore": "One more thing, {username}?",
     "welcomeEveningStill": "Still at it, {username}?",
     "lastViewed": "Last viewed",
+    "viewAllProjects": "View all projects",
+    "projectProgress": "{done} of {total} completed",
+    "projectEmpty": "No tasks yet",
+    "stats": {
+      "myOpen": "My open tasks"
+    },
+    "quickAdd": {
+      "assignee": "assign",
+      "label": "label",
+      "project": "project",
+      "priority": "priority",
+      "dateExample": "tomorrow 5pm",
+      "date": "due date"
+    },
+    "tabs": {
+      "all": "All",
+      "today": "Today",
+      "overdue": "Overdue",
+      "mine": "Assigned to me",
+      "empty": "Nothing here."
+    },
+    "team": {
+      "title": "Team this week",
+      "done": "Done",
+      "viewDashboard": "Open dashboard",
+      "openCount": "{count} open",
+      "overdueCount": "{count} overdue"
+    },
     "addToHomeScreen": "Add this app to your home screen for faster access and improved experience.",
     "goToOverview": "Go to overview",
     "project": {

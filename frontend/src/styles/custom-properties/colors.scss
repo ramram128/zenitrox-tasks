@@ -254,6 +254,9 @@
   --danger-text-l: 44%;
   --danger-text: hsla(var(--danger-h), var(--danger-s), var(--danger-text-l), var(--danger-a));
 
+  // Same for amber: --warning as text on white is far below 4.5:1
+  --warning-text: hsla(var(--warning-h), var(--warning-s), 31%, var(--warning-a));
+
   // var(--primary) / $blue is #1973ff
   --primary-h: 217deg;
   --primary-s: 98%;
@@ -347,6 +350,7 @@
 
       // Bright values already pass contrast on dark backgrounds; skip the light-theme darkening
       --danger-text: var(--danger);
+      --warning-text: var(--warning);
 
       --scheme-main-bis: var(--grey-100);
       --scheme-main-ter: var(--grey-100);

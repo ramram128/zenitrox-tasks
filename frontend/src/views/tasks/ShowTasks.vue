@@ -3,9 +3,34 @@
 		v-cy="'showTasks'"
 		class="is-max-width-desktop has-text-start"
 	>
-		<h2 class="mbe-2 title">
-			{{ pageTitle }}
-		</h2>
+		<div
+			class="show-tasks-header"
+			:class="{'has-tabs': tabs}"
+		>
+			<h2 class="mbe-2 title">
+				{{ pageTitle }}
+			</h2>
+			<div
+				v-if="tabs && hasTasks"
+				class="task-tabs"
+				role="tablist"
+				:aria-label="pageTitle"
+			>
+				<button
+					v-for="tab in taskTabs"
+					:key="tab.key"
+					type="button"
+					role="tab"
+					class="task-tab"
+					:class="{'is-active': activeTab === tab.key, 'is-danger': tab.key === 'overdue' && tab.count > 0}"
+					:aria-selected="activeTab === tab.key"
+					@click="activeTab = tab.key"
+				>
+					{{ tab.label }}
+					<span class="task-tab-count">{{ tab.count }}</span>
+				</button>
+			</div>
+		</div>
 		<Message
 			v-if="filteredLabels.length > 0"
 			class="label-filter-info mbe-2"
@@ -86,7 +111,7 @@
 		>
 			<ul class="p-2 tasks">
 				<li
-					v-for="task in tasks"
+					v-for="task in visibleTasks"
 					:key="task.id"
 				>
 					<SingleTaskInProject
@@ -97,6 +122,12 @@
 					/>
 				</li>
 			</ul>
+			<p
+				v-if="visibleTasks.length === 0"
+				class="task-tab-empty"
+			>
+				{{ $t('home.tabs.empty') }}
+			</p>
 		</Card>
 		<div
 			v-else
@@ -130,6 +161,9 @@ import {useTasks} from '@/composables/useTasks'
 import {useDelayedLoading} from '@/composables/useDelayedLoading'
 import type {TaskScope} from '@/client/queries/tasks'
 import {PERMISSIONS} from '@/constants/permissions'
+import {useGlobalNow} from '@/composables/useGlobalNow'
+import {isTaskDueToday, isTaskOverdue} from '@/helpers/taskUrgency'
+import type {TaskResponse} from '@/client/queries/tasks'
 
 const props = withDefaults(defineProps<{
 	dateFrom?: Date | string,
@@ -137,12 +171,14 @@ const props = withDefaults(defineProps<{
 	showNulls?: boolean,
 	showOverdue?: boolean,
 	labelIds?: string[],
+	tabs?: boolean,
 }>(), {
 	showNulls: false,
 	showOverdue: false,
 	dateFrom: undefined,
 	dateTo: undefined,
 	labelIds: undefined,
+	tabs: false,
 })
 
 const emit = defineEmits<{
@@ -203,6 +239,24 @@ const pageTitle = computed(() => {
 		})
 })
 const hasTasks = computed(() => tasks.value && tasks.value.length > 0)
+
+type TaskTab = 'all' | 'today' | 'overdue' | 'mine'
+const activeTab = ref<TaskTab>('all')
+const {now} = useGlobalNow()
+const tabFilters: Record<TaskTab, (task: TaskResponse) => boolean> = {
+	all: () => true,
+	today: task => isTaskDueToday(task, now.value),
+	overdue: task => isTaskOverdue(task, now.value),
+	mine: task => task.assignees.some(user => user.id === authStore.info?.id),
+}
+const taskTabs = computed(() => (['all', 'today', 'overdue', 'mine'] as const).map(key => ({
+	key,
+	label: t(`home.tabs.${key}`),
+	count: (tasks.value ?? []).filter(tabFilters[key]).length,
+})))
+const visibleTasks = computed(() => props.tabs
+	? (tasks.value ?? []).filter(tabFilters[activeTab.value])
+	: (tasks.value ?? []))
 const userAuthenticated = computed(() => authStore.authenticated)
 const loading = taskQuery.isFetching
 const showLoading = useDelayedLoading(loading)
@@ -320,6 +374,81 @@ watchEffect(() => setTitle(pageTitle.value))
 .tasks {
 	list-style: none;
 	margin: 0;
+}
+
+.show-tasks-header.has-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5rem 1rem;
+	margin-block-end: .75rem;
+
+	.title {
+		margin-block-end: 0 !important;
+	}
+}
+
+.task-tabs {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: .25rem;
+	padding: .25rem;
+	border-radius: $radius;
+	background: var(--grey-100);
+}
+
+.task-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	padding: .35rem .75rem;
+	border: 0;
+	border-radius: $radius-small;
+	background: transparent;
+	color: var(--grey-600);
+	font: inherit;
+	font-size: .85rem;
+	font-weight: 500;
+	cursor: pointer;
+
+	&:hover {
+		color: var(--grey-900);
+	}
+
+	&.is-active {
+		background: var(--white);
+		color: var(--primary);
+		font-weight: 600;
+		box-shadow: var(--shadow-xs);
+	}
+
+	&:focus-visible {
+		box-shadow: 0 0 0 2px hsla(var(--primary-hsl), 0.5);
+	}
+}
+
+.task-tab-count {
+	min-inline-size: 1.4rem;
+	padding: 0 .4rem;
+	border-radius: 999px;
+	background: var(--grey-200);
+	color: var(--grey-700);
+	font-size: .7rem;
+	font-weight: 600;
+	text-align: center;
+
+	.is-danger & {
+		background: hsla(var(--danger-h), var(--danger-s), var(--danger-l), .15);
+		color: var(--danger-text);
+	}
+}
+
+.task-tab-empty {
+	margin: 0;
+	padding: 1.5rem;
+	text-align: center;
+	color: var(--grey-500);
 }
 
 .show-tasks-options {

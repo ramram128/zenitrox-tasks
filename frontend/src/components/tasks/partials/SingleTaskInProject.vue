@@ -9,6 +9,8 @@
 			class="task loader-container single-task"
 			tabindex="-1"
 			:data-is-overdue="isOverdue || undefined"
+			:data-priority="priorityAccent"
+			:data-is-due-today="isDueToday || undefined"
 			@click="openTaskDetail"
 			@keyup.enter="openTaskDetail"
 		>
@@ -35,28 +37,11 @@
 				:class="{ 'done': task.done, 'show-project': showProject && project}"
 				class="tasktext"
 			>
-				<span>
-					<RouterLink
-						v-if="showProject && typeof project !== 'undefined'"
-						v-tooltip="$t('task.detail.belongsToProject', {project: project.title})"
-						:to="{ name: 'project.index', params: { projectId: task.project_id } }"
-						class="task-project mie-1"
-						:class="{'mie-2': task.hex_color !== ''}"
-						@click.stop
-					>
-						{{ project.title }}
-					</RouterLink>
-
+				<span class="task-title-line">
 					<ColorBubble
 						v-if="task.hex_color !== ''"
 						:color="getHexColor(task.hex_color)"
 						class="mie-1"
-					/>
-	
-					<PriorityLabel
-						:priority="task.priority ?? 0"
-						:done="task.done"
-						class="pis-2 mie-1"
 					/>
 
 					<TaskGlanceTooltip :task="task">
@@ -68,54 +53,65 @@
 							{{ task.title }}
 						</RouterLink>
 					</TaskGlanceTooltip>
+
+					<PriorityLabel
+						:priority="task.priority ?? 0"
+						:done="task.done"
+						class="task-priority"
+					/>
 				</span>
 
-				<Labels
-					v-if="(task.labels?.length ?? 0) > 0"
-					class="labels mis-2 mie-1"
-					:labels="task.labels ?? []"
-				/>
+				<span class="task-meta">
+					<RouterLink
+						v-if="showProject && typeof project !== 'undefined'"
+						v-tooltip="$t('task.detail.belongsToProject', {project: project.title})"
+						:to="{ name: 'project.index', params: { projectId: task.project_id } }"
+						class="task-project"
+						@click.stop
+					>
+						{{ project.title }}
+					</RouterLink>
 
-				<AssigneeList
-					v-if="(task.assignees?.length ?? 0) > 0"
-					:assignees="task.assignees ?? []"
-					:avatar-size="25"
-					class="mis-1"
-					:inline="true"
-				/>
+					<Labels
+						v-if="(task.labels?.length ?? 0) > 0"
+						class="labels"
+						:labels="task.labels ?? []"
+					/>
 
-				<Popup
-					v-if="task.due_date && +new Date(task.due_date) > 0"
-					placement="bottom-start"
-					:anchor="dueDateTriggerEl"
-					sheet-on-mobile
-					:sheet-title="$t('task.deferDueDate.title')"
-				>
-					<template #trigger="{toggle, isOpen}">
-						<BaseButton
-							ref="dueDateTrigger"
-							v-tooltip="formatDateLong(task.due_date)"
-							class="dueDate"
-							@click.prevent.stop="toggle()"
-						>	
-							<time
-								:datetime="formatISO(task.due_date)"
-								class="is-italic"
-								:aria-expanded="isOpen ? 'true' : 'false'"
+					<Popup
+						v-if="task.due_date && +new Date(task.due_date) > 0"
+						placement="bottom-start"
+						:anchor="dueDateTriggerEl"
+						sheet-on-mobile
+						:sheet-title="$t('task.deferDueDate.title')"
+					>
+						<template #trigger="{toggle, isOpen}">
+							<BaseButton
+								ref="dueDateTrigger"
+								v-tooltip="formatDateLong(task.due_date)"
+								class="dueDate"
+								@click.prevent.stop="toggle()"
 							>
-								– {{ $t('task.detail.due', {at: dueDateFormatted}) }}
-							</time>
-						</BaseButton>
-					</template>
-					<template #content="{isOpen}">
-						<DeferTask
-							v-if="isOpen"
-							:model-value="task"
-						/>
-					</template>
-				</Popup>
+								<Icon
+									:icon="['far', 'calendar-alt']"
+									class="due-icon"
+								/>
+								<time
+									:datetime="formatISO(task.due_date)"
+									:aria-expanded="isOpen ? 'true' : 'false'"
+								>
+									{{ $t('task.detail.due', {at: dueDateFormatted}) }}
+								</time>
+							</BaseButton>
+						</template>
+						<template #content="{isOpen}">
+							<DeferTask
+								v-if="isOpen"
+								:model-value="task"
+							/>
+						</template>
+					</Popup>
 
-				<span>
 					<span
 						v-if="(task.attachments?.length ?? 0) > 0"
 						class="project-task-icon"
@@ -140,10 +136,18 @@
 						:task="task"
 						class="project-task-icon"
 					/>
-				</span>
 
-				<ChecklistSummary :task="task" />
+					<ChecklistSummary :task="task" />
+				</span>
 			</div>
+
+			<AssigneeList
+				v-if="(task.assignees?.length ?? 0) > 0"
+				:assignees="task.assignees ?? []"
+				:avatar-size="26"
+				class="task-assignees"
+				:inline="true"
+			/>
 
 			<ProgressBar
 				v-if="(task.percent_done ?? 0) > 0"
@@ -235,6 +239,7 @@ import {useIntervalFn} from '@vueuse/core'
 import {playPopSound} from '@/helpers/playPop'
 import {isEditorContentEmpty} from '@/helpers/editorContentEmpty'
 import {TASK_REPEAT_MODES} from '@/types/IRepeatMode'
+import {isTaskDueToday, taskPriorityAccent} from '@/helpers/taskUrgency'
 import {useGlobalNow} from '@/composables/useGlobalNow'
 import {useDelayedLoading} from '@/composables/useDelayedLoading'
 
@@ -317,6 +322,9 @@ const isOverdue = computed(() => (
 	new Date(task.value.due_date ?? 0).getTime() > 0 &&
 	new Date(task.value.due_date ?? 0).getTime() <= now.value.getTime()
 ))
+
+const isDueToday = computed(() => isTaskDueToday(task.value, now.value))
+const priorityAccent = computed(() => taskPriorityAccent(task.value))
 
 let oldTask: ITask
 
@@ -405,12 +413,22 @@ defineExpose({
 .task {
 	display: flex;
 	flex-wrap: wrap;
-	padding: .4rem;
+	gap: .25rem .5rem;
+	padding: .65rem .75rem;
 	transition: background-color $transition;
 	align-items: center;
 	cursor: pointer;
 	border-radius: $radius;
 	border: 2px solid transparent;
+	box-shadow: inset 3px 0 0 transparent;
+
+	&[data-priority='high'] {
+		box-shadow: inset 3px 0 0 var(--warning);
+	}
+
+	&[data-priority='urgent'] {
+		box-shadow: inset 3px 0 0 var(--danger);
+	}
 
 	&:hover {
 		background-color: var(--grey-100);
@@ -434,51 +452,125 @@ defineExpose({
 		}
 	}
 
-	.tasktext,
-	&.tasktext {
-		text-overflow: ellipsis;
+	.tasktext {
+		display: flex;
+		flex-direction: column;
+		gap: .3rem;
+		flex: 1 1 50%;
+		min-inline-size: 0;
 		word-wrap: break-word;
 		word-break: break-word;
-		display: -webkit-box;
 		hyphens: auto;
-		-webkit-line-clamp: 4;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
+	}
 
-		flex: 1 0 50%;
+	.task-title-line {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: .35rem;
+		font-weight: 500;
+		line-height: 1.35;
 
+		.task-link {
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+	}
+
+	.task-priority {
+		display: inline-flex;
+		align-items: center;
+		gap: .25rem;
+		padding: .05rem .5rem;
+		border-radius: 999px;
+		background: var(--grey-100);
+		font-size: .7rem;
+		font-weight: 600;
+		line-height: 1.5;
+
+		:deep(.icon) {
+			padding: 0;
+			block-size: auto;
+			vertical-align: middle;
+		}
+
+		&.high-priority {
+			background: hsla(var(--danger-h), var(--danger-s), var(--danger-l), .12);
+		}
+
+		&.not-so-high {
+			color: var(--warning-text);
+			background: hsla(var(--warning-h), var(--warning-s), var(--warning-l), .15);
+		}
+	}
+
+	.task-meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: .35rem .5rem;
+		font-size: .8rem;
+		color: var(--grey-500);
+
+		&:empty {
+			display: none;
+		}
+
+		:deep(.tag) {
+			margin: 0;
+		}
 	}
 
 	.dueDate {
-		display: inline-block;
-		margin-inline-start: 5px;
+		display: inline-flex;
+		align-items: center;
+		gap: .3rem;
+		padding: .1rem .5rem;
+		border-radius: 999px;
+		background: var(--grey-100);
+		color: var(--grey-600);
+		font-size: .75rem;
+		font-weight: 500;
 
 		&:focus-visible {
-			box-shadow: none;
-
-			time {
-				box-shadow: 0 0 0 1px hsla(var(--primary-hsl), 0.5);
-				border-radius: 3px;
-			}
+			box-shadow: 0 0 0 2px hsla(var(--primary-hsl), 0.5);
 		}
+	}
+
+	&:hover .dueDate {
+		background: var(--white);
+	}
+
+	&[data-is-due-today] .dueDate {
+		color: var(--warning-text);
+		background: hsla(var(--warning-h), var(--warning-s), var(--warning-l), .15);
 	}
 
 	&[data-is-overdue] .dueDate {
 		color: var(--danger-text);
+		background: hsla(var(--danger-h), var(--danger-s), var(--danger-l), .12);
 	}
 
 	.task-project {
-		inline-size: auto;
-		color: var(--grey-400);
-		font-size: .9rem;
+		display: inline-flex;
+		align-items: center;
+		padding: .1rem .5rem;
+		border-radius: $radius-small;
+		background: var(--grey-100);
+		color: var(--grey-600);
+		font-size: .75rem;
+		font-weight: 500;
 		white-space: nowrap;
 	}
 
-	.tasktext :deep(.color-bubble),
-	.tasktext :deep(.avatar-wrapper),
-	.tasktext :deep(.labels .tag) {
-		vertical-align: middle;
-		transform: translateY(-2px);
+	.task-assignees {
+		flex-shrink: 0;
+	}
+
+	.tasktext :deep(.color-bubble) {
+		flex-shrink: 0;
 	}
 
 	.avatar {
@@ -490,12 +582,7 @@ defineExpose({
 	}
 
 	.project-task-icon {
-		margin-inline-start: 6px;
-
-		&:not(:first-of-type) {
-			margin-inline-start: 8px;
-		}
-
+		color: var(--grey-400);
 	}
 
 	a {
@@ -565,7 +652,7 @@ defineExpose({
 		}
 	}
 
-	.tasktext.done {
+	.tasktext.done .task-link {
 		text-decoration: line-through;
 		color: var(--grey-500);
 	}
