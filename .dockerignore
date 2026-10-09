@@ -16,3 +16,6 @@ docker-manifest-unstable.tmpl
 /frontend/node_modules/
 /frontend/.direnv
 /frontend/dist
+
+# VS Code extension
+/vscode-extension/

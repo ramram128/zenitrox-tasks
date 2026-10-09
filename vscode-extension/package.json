@@ -1,0 +1,198 @@
+{
+  "name": "zenitrox",
+  "displayName": "Zenitrox Tasks",
+  "description": "See your Zenitrox tasks in VS Code and Antigravity, mark them done and update progress.",
+  "version": "0.2.4",
+  "publisher": "zenitrox",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ramram128/zenitrox-tasks.git",
+    "directory": "vscode-extension"
+  },
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zenitrox",
+          "title": "Zenitrox",
+          "icon": "media/zenitrox.svg"
+        }
+      ]
+    },
+    "views": {
+      "zenitrox": [
+        {
+          "id": "zenitrox.myTasks",
+          "name": "My Tasks",
+          "initialSize": 20
+        },
+        {
+          "id": "zenitrox.account",
+          "name": "Account",
+          "initialSize": 1,
+          "when": "zenitrox.signedIn"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "zenitrox.myTasks",
+        "contents": "Connect to Zenitrox to see the tasks assigned to you.\n[Sign in](command:zenitrox.signIn)\nUse your Zenitrox username and password. Accounts that only sign in with Google can use an API token instead.",
+        "when": "!zenitrox.signedIn"
+      }
+    ],
+    "commands": [
+      {
+        "command": "zenitrox.signIn",
+        "title": "Sign In",
+        "category": "Zenitrox",
+        "icon": "$(sign-in)"
+      },
+      {
+        "command": "zenitrox.signOut",
+        "title": "Sign Out",
+        "category": "Zenitrox",
+        "icon": "$(sign-out)"
+      },
+      {
+        "command": "zenitrox.refresh",
+        "title": "Refresh",
+        "category": "Zenitrox",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "zenitrox.openApp",
+        "title": "Open Zenitrox in Browser",
+        "category": "Zenitrox",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "zenitrox.openTask",
+        "title": "Open in Browser",
+        "category": "Zenitrox",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "zenitrox.markDone",
+        "title": "Mark Done",
+        "category": "Zenitrox",
+        "icon": "$(check)"
+      },
+      {
+        "command": "zenitrox.setProgress",
+        "title": "Set Progress…",
+        "category": "Zenitrox",
+        "icon": "$(dashboard)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "zenitrox.refresh",
+          "when": "view == zenitrox.myTasks && zenitrox.signedIn",
+          "group": "navigation@1"
+        },
+        {
+          "command": "zenitrox.openApp",
+          "when": "view == zenitrox.myTasks && zenitrox.signedIn",
+          "group": "navigation@2"
+        },
+        {
+          "command": "zenitrox.signOut",
+          "when": "view == zenitrox.myTasks && zenitrox.signedIn"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "zenitrox.signOut",
+          "when": "view == zenitrox.account && viewItem == account",
+          "group": "inline@1"
+        },
+        {
+          "command": "zenitrox.markDone",
+          "when": "view == zenitrox.myTasks && viewItem == task",
+          "group": "inline@1"
+        },
+        {
+          "command": "zenitrox.setProgress",
+          "when": "view == zenitrox.myTasks && viewItem == task",
+          "group": "inline@2"
+        },
+        {
+          "command": "zenitrox.openTask",
+          "when": "view == zenitrox.myTasks && viewItem == task",
+          "group": "inline@3"
+        },
+        {
+          "command": "zenitrox.markDone",
+          "when": "view == zenitrox.myTasks && viewItem == task",
+          "group": "1_task@1"
+        },
+        {
+          "command": "zenitrox.setProgress",
+          "when": "view == zenitrox.myTasks && viewItem == task",
+          "group": "1_task@2"
+        },
+        {
+          "command": "zenitrox.openTask",
+          "when": "view == zenitrox.myTasks && viewItem == task",
+          "group": "2_open@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "zenitrox.openTask",
+          "when": "false"
+        },
+        {
+          "command": "zenitrox.markDone",
+          "when": "false"
+        },
+        {
+          "command": "zenitrox.setProgress",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Zenitrox",
+      "properties": {
+        "zenitrox.url": {
+          "type": "string",
+          "default": "https://zenitroxteam.onrender.com",
+          "description": "Address of your Zenitrox server."
+        },
+        "zenitrox.refreshMinutes": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "description": "How often the task list reloads, in minutes."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "tsc -p ./ && node --test out/test/*.test.js",
+    "package": "tsc -p ./ && vsce package --no-dependencies --out zenitrox.vsix"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.6.0"
+  }
+}
